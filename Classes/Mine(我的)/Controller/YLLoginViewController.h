@@ -7,9 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
-@class YLLoginViewController;
-
+@protocol YLLoginVCDelegate <NSObject>
+@optional
+- (void)loginVCDidClickBtn:(UIViewController *)vc;
+@end
 @interface YLLoginViewController : UIViewController
-
+@property (nonatomic,weak)id<YLLoginVCDelegate> delegate;
 
 @end

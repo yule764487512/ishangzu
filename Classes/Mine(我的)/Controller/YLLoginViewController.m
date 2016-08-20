@@ -7,7 +7,7 @@
 //
 
 #import "YLLoginViewController.h"
-
+#import "MBProgressHUD+MJ.h"
 @interface YLLoginViewController ()<UITextFieldDelegate>
 /** 获取验证码*/
 @property (weak, nonatomic) IBOutlet UIButton *getSecurityBtn;
@@ -17,7 +17,7 @@
 @property (weak, nonatomic) IBOutlet UITextField *securityTextField;
 @property (nonatomic,assign)NSInteger seconds;
 @property (nonatomic,strong)NSTimer * timer;
-@property (weak, nonatomic) IBOutlet UILabel *alertLable;
+
 
 @end
 
@@ -25,11 +25,20 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [self setupNavBar];
     self.getSecurityBtn.userInteractionEnabled=NO;
     self.loginBtn.userInteractionEnabled=NO;
 
 }
-
+/** 设置导航栏*/
+- (void)setupNavBar
+{
+    self.title=@"注册登录";
+    self.automaticallyAdjustsScrollViewInsets=NO;
+    UIBarButtonItem *cancelBtn=[[UIBarButtonItem alloc]initWithTitle:@"取消" style:UIBarButtonItemStylePlain target:self action:@selector(cancelAction)];
+    [cancelBtn setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:15]} forState:UIControlStateNormal];
+    self.navigationItem.leftBarButtonItem=cancelBtn;
+}
 /** 监听手机号码值改变*/
 - (IBAction)phoneTextFieldChange {
     if (self.phoneNumTextField.text.length==11) {
@@ -60,6 +69,7 @@
     _seconds = 30;
     NSString *str = [NSString stringWithFormat:@"已发送(%ld s)", _seconds];
     [self.getSecurityBtn setTitle:str forState:UIControlStateDisabled];
+    [self.getSecurityBtn setTintColor:[UIColor redColor]];
     [self.getSecurityBtn.titleLabel setFont:[UIFont systemFontOfSize:12]];
     [self.getSecurityBtn setEnabled:NO];
     self.timer = [NSTimer timerWithTimeInterval:1
@@ -85,25 +95,21 @@
     }
 }
 /** 取消*/
-- (IBAction)cancelAction {
-    [self dismissViewControllerAnimated:YES completion:nil];
+- (void)cancelAction {
+    [self.navigationController popViewControllerAnimated:YES];
 }
 /** 获取验证码*/
 - (IBAction)getSecurityAction {
-    [self startCountDown];
+    
     NSDictionary *dict=@{@"phone":self.phoneNumTextField.text};
     [HYBNetworking postWithUrl:@"http://appnew.ishangzu.com/api/common/0102" refreshCache:YES params:dict success:^(id response) {
         if ([response[@"msg"] isEqualToString:@"成功"])
         {
-            self.alertLable.hidden=YES;
+            [self startCountDown];
         }
         else
         {
-            self.alertLable.hidden=NO;
-            self.alertLable.text=@"手机号输入错误";
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                self.alertLable.hidden=YES;
-            });
+            [MBProgressHUD showError:@"手机号输入错误"];
         }
     } fail:^(NSError *error) {
         
@@ -118,17 +124,15 @@
             
             YLUser *user=[YLUser mj_objectWithKeyValues:response[@"obj"][@"userInfo"]];
             user.token=[YLUser mj_objectWithKeyValues:response[@"obj"]].token;
-            self.alertLable.hidden=YES;
+            if ([self.delegate respondsToSelector:@selector(loginVCDidClickBtn:)]) {
+                [self.delegate loginVCDidClickBtn:self];
+            }
             [self dismissViewControllerAnimated:YES completion:nil];
         }
         else
         {
-            self.alertLable.hidden=NO;
-            self.alertLable.text=@"验证码错误，请重试";
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                self.alertLable.hidden=YES;
-            });
-        } 
+            [MBProgressHUD showError:@"验证码错误，请重试"];
+        }
 
     } fail:^(NSError *error) {
         

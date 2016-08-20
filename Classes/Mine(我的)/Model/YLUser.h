@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 #define KuserManager [YLUser shareManager]
+#define KUid  [NSString stringWithFormat:@"%ld",KuserManager.uid]
 @interface YLUser : NSObject
 /** 登录后的标识*/
 @property (nonatomic,copy)NSString *token;

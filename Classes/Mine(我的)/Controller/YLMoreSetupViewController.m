@@ -17,15 +17,15 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.title=@"更多设置";
+    self.automaticallyAdjustsScrollViewInsets=NO;
     self.tableView.bounces=NO;
    
     self.tableView.sectionHeaderHeight=5;
     self.tableView.sectionFooterHeight=5;
   
 }
-- (IBAction)backAction {
-    [self dismissViewControllerAnimated:YES completion:nil];
-}
+
 
 #pragma mark - UITableViewDataSource
 //多少行

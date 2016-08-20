@@ -7,31 +7,59 @@
 //
 
 #import "YLHomeViewController.h"
-
-@interface YLHomeViewController ()
-
+#import "UINavigationBar+Awesome.h"
+#import "YLBannerView.h"
+#import "BannerModel.h"
+@interface YLHomeViewController ()<YLBannerViewDelegate>
+@property (nonatomic,strong)NSMutableArray * models;
 @end
 
 @implementation YLHomeViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view.
+    self.automaticallyAdjustsScrollViewInsets=NO;
+    [self loadData];
+
+}
+- (void)loadData
+{
+    NSDictionary *dict=@{@"recommendPosition":@"003"};
+    [HYBNetworking postWithUrl:@"http://appnew.ishangzu.com/api/common/0201" refreshCache:YES params:dict success:^(id response) {
+        self.models=[BannerModel mj_objectArrayWithKeyValuesArray:response[@"obj"]];
+        YLBannerView *bannerView=[YLBannerView bannerViewWithFrame:CGRectMake(0, 20, appW,190) modelImages:self.models];
+        bannerView.delegate=self;
+        [self.view addSubview:bannerView];
+    } fail:^(NSError *error) {
+        
+    }];
+}
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+   [self.navigationController.navigationBar lt_setBackgroundColor:[UIColor clearColor]];
+    //覆盖导航栏的线
+    [self.navigationController.navigationBar setShadowImage:[UIImage new]];
+}
+//还原导航栏的设置
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    
+    [self.navigationController.navigationBar lt_reset];
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+#pragma mark --YLBannerViewDelegate
+- (void)bannerView:(YLBannerView *)bannerView didSelectButtonAtIndex:(NSUInteger *)index
+{
+    NSLog(@"%ld",index);
 }
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
+#pragma mark -- 懒加载
+- (NSMutableArray *)models
+{
+    if (_models==nil) {
+        _models=[NSMutableArray array];
+    }
+    return _models;
 }
-*/
-
 @end
